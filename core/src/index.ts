@@ -7,3 +7,4 @@ export * from './cache';
 export * from './service';
 export * from './render';
 export * from './notify';
+export * from './net';

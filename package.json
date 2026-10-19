@@ -17,5 +17,8 @@
     "@types/node": "^20.19.43",
     "esbuild": "^0.28.2",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "undici": "^6.29.1"
   }
 }
