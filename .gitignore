@@ -1,0 +1,15 @@
+node_modules/
+dist/
+out/
+*.vsix
+artifacts/
+bin/
+obj/
+.vs/
+*.user
+release/
+browser-extension/build/
+core/dist/
+*.zip
+*.AppImage
+builder-debug.yml

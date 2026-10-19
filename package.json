@@ -1,0 +1,21 @@
+{
+  "name": "claude-limits",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Claude abonelik ve API limitlerini VS Code, Visual Studio, masaüstü (tray) ve tarayıcıda gösterir.",
+  "scripts": {
+    "build:core": "tsc -p core/tsconfig.json",
+    "test": "npm run build:core && node --test core/dist/test/*.test.js",
+    "test:all": "npm test && npm --prefix vscode-extension test && npm --prefix browser-extension test && npm --prefix tray-app test",
+    "build:vscode": "npm --prefix vscode-extension run package",
+    "build:browser": "npm --prefix browser-extension run build",
+    "build:tray": "npm --prefix tray-app run build",
+    "mock": "node scripts/mock-anthropic.mjs",
+    "icons": "python3 scripts/make-icons.py"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  }
+}
