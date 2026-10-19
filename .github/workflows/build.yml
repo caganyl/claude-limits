@@ -1,0 +1,113 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ---------------------------------------------------------------- core + VS Code + browser
+  js:
+    name: Core, VS Code eklentisi, tarayıcı eklentisi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - name: VS Code eklentisi
+        working-directory: vscode-extension
+        run: |
+          npm ci
+          npm test
+          npm run package
+      - name: Tarayıcı eklentisi
+        working-directory: browser-extension
+        run: |
+          npm ci
+          npm test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: vscode-extension/claude-limits.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: browser-extension
+          path: browser-extension/claude-limits-browser-*.zip
+
+  # ---------------------------------------------------------------- tray app
+  tray:
+    name: Tray uygulaması (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: dist:win
+            files: |
+              tray-app/release/*.exe
+          - os: macos-latest
+            script: dist:mac
+            files: |
+              tray-app/release/*.dmg
+              tray-app/release/*.zip
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: tray-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - run: npm run ${{ matrix.script }} -- --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tray-${{ matrix.os }}
+          path: ${{ matrix.files }}
+
+  # ---------------------------------------------------------------- Visual Studio 2022/2026
+  visual-studio:
+    name: Visual Studio eklentisi (VSIX)
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: visual-studio-extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - uses: microsoft/setup-msbuild@v2
+      - uses: nuget/setup-nuget@v2
+      - name: Derle ve test et
+        shell: pwsh
+        run: ./build.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visual-studio-extension
+          path: visual-studio-extension/artifacts/ClaudeLimits.vsix
+
+  # ---------------------------------------------------------------- GitHub Release (v* etiketi)
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [js, tray, visual-studio]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**
+          generate_release_notes: true
