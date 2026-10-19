@@ -1,0 +1,186 @@
+{
+  "name": "claude-limits",
+  "displayName": "Claude Limits",
+  "description": "Claude Pro/Max kullanım limitlerini (5 saatlik oturum, haftalık, model bazlı) ve Anthropic API rate limit/harcamasını durum çubuğunda gösterir.",
+  "version": "1.0.0",
+  "publisher": "caganyl",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/caganyl/claude-limits"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "extensionKind": [
+    "ui",
+    "workspace"
+  ],
+  "categories": [
+    "Other",
+    "Visualization"
+  ],
+  "keywords": [
+    "claude",
+    "anthropic",
+    "claude code",
+    "usage",
+    "limits",
+    "rate limit"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "claudeLimits.showDetails",
+        "title": "Ayrıntıları göster",
+        "category": "Claude Limits",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "claudeLimits.refresh",
+        "title": "Şimdi yenile",
+        "category": "Claude Limits",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeLimits.setApiKey",
+        "title": "API anahtarı gir (rate limit)",
+        "category": "Claude Limits"
+      },
+      {
+        "command": "claudeLimits.setAdminKey",
+        "title": "Admin API anahtarı gir (harcama)",
+        "category": "Claude Limits"
+      },
+      {
+        "command": "claudeLimits.setOAuthToken",
+        "title": "Claude OAuth token'ı elle gir",
+        "category": "Claude Limits"
+      },
+      {
+        "command": "claudeLimits.clearSecrets",
+        "title": "Kayıtlı anahtarları sil",
+        "category": "Claude Limits"
+      },
+      {
+        "command": "claudeLimits.openSettings",
+        "title": "Ayarları aç",
+        "category": "Claude Limits"
+      }
+    ],
+    "configuration": {
+      "title": "Claude Limits",
+      "properties": {
+        "claudeLimits.subscription.enabled": {
+          "type": "boolean",
+          "default": true,
+          "order": 0,
+          "markdownDescription": "Claude Pro/Max/Team abonelik limitlerini göster. Veri, bu bilgisayardaki **Claude Code** girişinden okunur (`claude` → `/login`)."
+        },
+        "claudeLimits.displayMode": {
+          "type": "string",
+          "enum": [
+            "both",
+            "session",
+            "weekly",
+            "highest"
+          ],
+          "enumDescriptions": [
+            "Oturum + haftalık",
+            "Yalnızca 5 saatlik oturum",
+            "Yalnızca haftalık",
+            "En yüksek olan"
+          ],
+          "default": "both",
+          "order": 1,
+          "description": "Durum çubuğunda hangi limitler gösterilsin."
+        },
+        "claudeLimits.thresholds.warn": {
+          "type": "number",
+          "default": 75,
+          "minimum": 1,
+          "maximum": 100,
+          "order": 2,
+          "description": "Bu yüzdenin üstünde turuncu uyarı."
+        },
+        "claudeLimits.thresholds.crit": {
+          "type": "number",
+          "default": 90,
+          "minimum": 1,
+          "maximum": 100,
+          "order": 3,
+          "description": "Bu yüzdenin üstünde kırmızı uyarı."
+        },
+        "claudeLimits.notifications.enabled": {
+          "type": "boolean",
+          "default": true,
+          "order": 4,
+          "description": "Bir limit uyarı/kritik eşiğini geçince bildirim göster."
+        },
+        "claudeLimits.refresh.subscriptionSeconds": {
+          "type": "number",
+          "default": 180,
+          "minimum": 60,
+          "order": 5,
+          "description": "Abonelik limitlerinin yenilenme aralığı (sn)."
+        },
+        "claudeLimits.refresh.rateLimitSeconds": {
+          "type": "number",
+          "default": 900,
+          "minimum": 120,
+          "order": 6,
+          "markdownDescription": "API rate limit ölçüm aralığı (sn). Her ölçüm 1 token'lık küçük bir istek gönderir (maliyeti cent'in çok altında)."
+        },
+        "claudeLimits.refresh.costSeconds": {
+          "type": "number",
+          "default": 600,
+          "minimum": 120,
+          "order": 7,
+          "description": "Admin API harcama verisinin yenilenme aralığı (sn)."
+        },
+        "claudeLimits.api.probeModel": {
+          "type": "string",
+          "default": "claude-haiku-5-5",
+          "order": 8,
+          "markdownDescription": "Rate limit'i ölçülecek model. Limitler model sınıfı başınadır; en çok kullandığınız modeli yazın (ör. `claude-opus-5-5`)."
+        },
+        "claudeLimits.api.monthlyBudgetUsd": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "order": 9,
+          "description": "Aylık API bütçesi (USD). 0 = bütçe gösterme."
+        }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "claudeLimits.showDetails"
+        },
+        {
+          "command": "claudeLimits.refresh"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit -p .",
+    "package": "npm run typecheck && node build.mjs --production && vsce package --no-dependencies -o claude-limits.vsix",
+    "test": "node build.mjs && node test/smoke.cjs"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "~1.85.0",
+    "@vscode/vsce": "^3.2.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.0"
+  }
+}
