@@ -10,6 +10,11 @@ on:
 permissions:
   contents: write
 
+# A new push supersedes a queued/running build of the same branch.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ---------------------------------------------------------------- core + VS Code + browser
   js:
@@ -45,6 +50,8 @@ jobs:
   # ---------------------------------------------------------------- tray app
   tray:
     name: Tray uygulaması (${{ matrix.os }})
+    # Installers are heavy (~35 min on Windows): build them for releases (v* tags) or on demand only.
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:

@@ -90,7 +90,9 @@ cd visual-studio-extension && ./build.ps1                       # Windows’ta �
 ```
 
 **Tek seferde tüm paketler:** depoyu GitHub’a gönderin; `.github/workflows/build.yml` her push’ta Linux, Windows ve macOS üzerinde
-testleri çalıştırıp tüm paketleri *Artifacts* olarak yükler. `v1.0.0` gibi bir etiket gönderirseniz paketler bir GitHub Release’e eklenir.
+testleri çalıştırır ve VS Code, Visual Studio ve tarayıcı paketlerini *Artifacts* olarak yükler. Tray kurulum paketleri
+(Windows `.exe`, macOS `.dmg`) uzun sürdüğü için yalnızca sürüm etiketinde veya *Actions → build → Run workflow* ile elle
+tetiklendiğinde derlenir. `v1.0.0` gibi bir etiket gönderirseniz paketler bir GitHub Release’e eklenir.
 
 **Gerçek hesaba dokunmadan deneme:** `npm run mock` yerel bir sahte Anthropic sunucusu başlatır;
 istemcileri `CLAUDE_LIMITS_API_BASE=http://127.0.0.1:8787` ortam değişkeniyle çalıştırın (bu değişken kurumsal proxy için de kullanılabilir).
