@@ -20,13 +20,13 @@ fs.writeFileSync(
 
 // ---------------------------------------------------------------- mocked network
 const calls = [];
-globalThis.fetch = async (url, init = {}) => {
+async function handle(url, init = {}) {
   calls.push({ url: String(url), init });
   const u = new URL(String(url));
   const json = (body, status = 200, headers = {}) =>
     new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...headers } });
   if (u.pathname === '/api/oauth/usage') {
-    assert.equal(init.headers.Authorization, 'Bearer tok-smoke');
+    assert.equal(init.headers.authorization, 'Bearer tok-smoke');
     return json({
       five_hour: { utilization: 81, resets_at: new Date(Date.now() + 2 * 3600e3).toISOString() },
       seven_day: { utilization: 22, resets_at: new Date(Date.now() + 4 * 86400e3).toISOString() },
@@ -46,7 +46,21 @@ globalThis.fetch = async (url, init = {}) => {
     });
   }
   return json({ error: { message: 'unexpected ' + u.pathname } }, 404);
-};
+}
+
+// Real HTTP server: the extension now uses its own proxy-aware transport, not globalThis.fetch.
+const http = require('node:http');
+const mock = http.createServer(async (req, res) => {
+  const chunks = [];
+  for await (const c of req) chunks.push(c);
+  const r = await handle(`http://127.0.0.1${req.url}`, { method: req.method, headers: req.headers, body: Buffer.concat(chunks).toString() });
+  res.writeHead(r.status, Object.fromEntries(r.headers));
+  res.end(Buffer.from(await r.arrayBuffer()));
+});
+// A corporate-style proxy variable that must be bypassed for this host (NO_PROXY).
+process.env.HTTPS_PROXY = 'http://zhlevproxy2.invalid:8080';
+process.env.HTTP_PROXY = 'http://zhlevproxy2.invalid:8080';
+process.env.NO_PROXY = '127.0.0.1,localhost';
 
 // ---------------------------------------------------------------- fake vscode
 const commands = new Map();
@@ -124,6 +138,8 @@ const context = {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
+  await new Promise((r) => mock.listen(0, '127.0.0.1', r));
+  process.env.CLAUDE_LIMITS_API_BASE = `http://127.0.0.1:${mock.address().port}`;
   const ext = require(path.join(__dirname, '..', 'dist', 'extension.js'));
   await ext.activate(context);
   await sleep(300);

@@ -155,6 +155,12 @@
           "minimum": 0,
           "order": 9,
           "description": "Aylık API bütçesi (USD). 0 = bütçe gösterme."
+        },
+        "claudeLimits.network.proxy": {
+          "type": "string",
+          "default": "auto",
+          "order": 10,
+          "markdownDescription": "Bağlantı yolu. `auto`: `HTTPS_PROXY`/`HTTP_PROXY` (veya VS Code `http.proxy`) varsa önce proxy, ulaşılamazsa doğrudan (ofis içi/dışı otomatik). `direct`: hep doğrudan. Ya da `http://sunucu:port` ile sabit proxy. Şirket sertifikaları `NODE_EXTRA_CA_CERTS` ve Windows/macOS sertifika deposundan okunur."
         }
       }
     },

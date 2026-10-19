@@ -9,10 +9,12 @@ import {
   Thresholds,
   ThresholdNotifier,
   compactText,
+  createNodeFetch,
   formatPercent,
   formatResetIn,
   formatUsd,
   renderSnapshotHtml,
+  setDefaultFetch,
   snapshotLevel,
 } from '../../core/src/index';
 
@@ -28,6 +30,7 @@ interface Secrets {
 }
 
 let panel: vscode.WebviewPanel | undefined;
+let routeInfo: () => string | undefined = () => undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const secrets: Secrets = {};
@@ -39,6 +42,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   await loadSecrets();
 
   const cfg = () => vscode.workspace.getConfiguration('claudeLimits');
+
+  // Corporate networks: HTTPS_PROXY / VS Code http.proxy + OS and NODE_EXTRA_CA_CERTS certificates,
+  // falling back to a direct connection when the proxy is unreachable (outside the office).
+  const transport = createNodeFetch({
+    proxy: () => cfg().get<string>('network.proxy', 'auto'),
+    autoProxy: () => vscode.workspace.getConfiguration('http').get<string>('proxy')?.trim() || undefined,
+  });
+  setDefaultFetch(transport as typeof fetch);
+  routeInfo = () => transport.lastRoute();
   const thresholds = (): Thresholds => {
     const warn = cfg().get<number>('thresholds.warn', 75);
     const crit = cfg().get<number>('thresholds.crit', 90);
@@ -214,6 +226,8 @@ function buildTooltip(s: Snapshot): vscode.MarkdownString {
     );
   }
   if (s.costError) md.appendMarkdown(`$(error) Harcama: ${escapeMd(s.costError)}\n\n`);
+  const route = routeInfo();
+  if (route) md.appendMarkdown(`$(globe) Bağlantı: ${route === 'direct' ? 'doğrudan' : `proxy \`${route.slice(6)}\``}\n\n`);
   md.appendMarkdown('[$(dashboard) Ayrıntılar](command:claudeLimits.showDetails) · [$(refresh) Yenile](command:claudeLimits.refresh)');
   return md;
 }
