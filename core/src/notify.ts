@@ -30,6 +30,7 @@ export class ThresholdNotifier {
     };
 
     for (const w of s.subscription?.windows ?? []) {
+      if (w.undocumented) continue;
       const reset = formatResetIn(w.resetsAt, now);
       consider(`sub:${w.id}:${w.resetsAt ?? ''}`, w.percent, (p) =>
         `Claude ${w.label} limiti ${p}${reset && reset !== 'şimdi' ? ` — ${reset} sonra sıfırlanır` : ''}.`,

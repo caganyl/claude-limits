@@ -70,7 +70,8 @@ export function textBar(percent: number, width = 10): string {
 export type DisplayMode = 'session' | 'weekly' | 'both' | 'highest';
 
 /** Windows to show in a compact status line for the given mode. */
-export function pickCompactWindows(windows: LimitWindow[], mode: DisplayMode): LimitWindow[] {
+export function pickCompactWindows(all: LimitWindow[], mode: DisplayMode): LimitWindow[] {
+  const windows = all.filter((w) => !w.undocumented);
   const session = windows.find((w) => w.id === 'session');
   const weekly = windows.find((w) => w.id === 'weekly_all');
   const scopedMax = windows
@@ -111,7 +112,9 @@ export function compactText(snapshot: Snapshot, mode: DisplayMode = 'both'): str
 /** Highest-severity level across everything in the snapshot. */
 export function snapshotLevel(snapshot: Snapshot, t: Thresholds = DEFAULT_THRESHOLDS): Level {
   const levels: Level[] = [];
-  snapshot.subscription?.windows.forEach((w) => levels.push(levelOf(w.percent, t)));
+  snapshot.subscription?.windows.forEach((w) => {
+    if (!w.undocumented) levels.push(levelOf(w.percent, t));
+  });
   snapshot.rateLimits?.buckets.forEach((b) => levels.push(levelOf(b.percentUsed, t)));
   if (snapshot.rateLimits?.limited) levels.push('crit');
   if (snapshot.cost?.percentOfBudget !== undefined) levels.push(levelOf(snapshot.cost.percentOfBudget, t));

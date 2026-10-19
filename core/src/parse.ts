@@ -75,7 +75,7 @@ function parseLimitsArray(raw: unknown): LimitWindow[] {
       }
       default: {
         const name = modelName ? ` · ${modelName}` : '';
-        w = { id: `${kind}${modelName ? ':' + modelName : ''}`, label: `${prettifyKey(kind)}${name}`, shortLabel: kind, percent };
+        w = { id: `${kind}${modelName ? ':' + modelName : ''}`, label: `${prettifyKey(kind)}${name}`, shortLabel: kind, percent, undocumented: true };
       }
     }
     w.percent = clampPct(w.percent);
@@ -96,7 +96,7 @@ function parseFlatKeys(json: Json): LimitWindow[] {
     const meta = FLAT_LABELS[key];
     const w: LimitWindow & { _o: number } = meta
       ? { id: meta.id, label: meta.label, shortLabel: meta.short, percent: clampPct(percent), _o: meta.order }
-      : { id: key, label: prettifyKey(key), shortLabel: key, percent: clampPct(percent), _o: 99 };
+      : { id: key, label: prettifyKey(key), shortLabel: key, percent: clampPct(percent), undocumented: true, _o: 99 };
     const resetsAt = str(value.resets_at);
     if (resetsAt) w.resetsAt = resetsAt;
     out.push(w);

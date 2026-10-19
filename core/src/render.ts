@@ -61,8 +61,10 @@ export function renderSnapshotHtml(s: Snapshot, o: RenderOptions = {}): string {
   parts.push(
     `<section class="cl-sec"><header class="cl-head"><h2>Abonelik limitleri</h2>${sub ? `<span class="cl-chip">${esc(chipBits.join(' · '))}</span>` : ''}</header>`,
   );
+  const documented = sub?.windows.filter((w) => !w.undocumented) ?? [];
+  const undocumented = sub?.windows.filter((w) => w.undocumented) ?? [];
   if (sub && sub.windows.length) {
-    for (const w of sub.windows) {
+    for (const w of documented) {
       const lv = levelOf(w.percent, t);
       parts.push(
         `<div class="cl-row${w.active ? ' cl-active' : ''}">` +
@@ -71,6 +73,22 @@ export function renderSnapshotHtml(s: Snapshot, o: RenderOptions = {}): string {
           bar(w.percent, lv) +
           `<div class="cl-sub">${esc(resetLine(w.resetsAt, now))}</div></div>`,
       );
+    }
+    if (undocumented.length) {
+      parts.push(
+        '<div class="cl-other" title="Anthropic’in kullanım yanıtında adı açıklanmamış (iç kod adlı) limitler. Ne ölçtükleri belgelenmemiştir; durum çubuğu, ikon ve bildirimlerde kullanılmaz.">' +
+          '<span class="cl-other-h">Diğer — belgelenmemiş</span>',
+      );
+      for (const w of undocumented) {
+        const rawKey = w.id.split(':')[0];
+        parts.push(
+          `<div class="cl-row cl-muted-row"><div class="cl-top"><span class="cl-label"><code>${esc(rawKey)}</code></span>` +
+            `<span class="cl-pct">${formatPercent(w.percent)}</span></div>` +
+            bar(w.percent, 'unknown') +
+            `<div class="cl-sub">${esc(resetLine(w.resetsAt, now))}</div></div>`,
+        );
+      }
+      parts.push('</div>');
     }
     if (sub.extra?.enabled) {
       const pct = sub.extra.percent;
@@ -179,6 +197,11 @@ export const BASE_CSS = `
 .cl-fill.cl-warn{background:var(--cl-warn)}.cl-fill.cl-crit{background:var(--cl-crit)}
 .cl-sub{font-size:11.5px;color:var(--cl-muted);min-height:1em}
 .cl-active .cl-bar{outline:1px solid var(--cl-accent);outline-offset:1px}
+.cl-fill.cl-unknown{background:var(--cl-muted)}
+.cl-other{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--cl-border);padding-top:8px}
+.cl-other-h{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--cl-muted)}
+.cl-muted-row .cl-label,.cl-muted-row .cl-pct{color:var(--cl-muted);font-weight:500}
+.cl-muted-row code{font-size:11.5px}
 .cl-err{margin:0;font-size:12px;color:var(--cl-crit)}
 .cl-empty{margin:0;font-size:12px;color:var(--cl-muted)}
 .cl-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}

@@ -83,6 +83,8 @@ test('flat keys are parsed when limits[] is absent; null buckets skipped, unknow
   );
   assert.equal(r.windows[0].shortLabel, '5s');
   assert.equal(r.windows[3].label, 'Mystery Bucket');
+  assert.equal(r.windows[3].undocumented, true);
+  assert.equal(r.windows[0].undocumented, undefined);
   assert.equal(r.windows[3].resetsAt, undefined);
   assert.deepEqual(r.extra, { enabled: false });
 });
@@ -373,4 +375,25 @@ test('service: shares results through the cache file and respects intervals/back
     else process.env.CLAUDE_CONFIG_DIR = prevDir;
     if (prevTok !== undefined) process.env.CLAUDE_CODE_OAUTH_TOKEN = prevTok;
   }
+});
+
+test('undocumented codename buckets never drive the status bar, colour or notifications', async () => {
+  const { ThresholdNotifier, renderSnapshotHtml } = await import('../src/index');
+  const sub = {
+    ...parseSubscriptionUsage({
+      five_hour: { utilization: 6 },
+      seven_day: { utilization: 16 },
+      iguana_necktie: { utilization: 97, resets_at: '2026-11-05T07:59:00Z' },
+    }),
+    source: 'claude-code' as const,
+    fetchedAt: '',
+  };
+  const snap = { subscription: sub, updatedAt: '' };
+  assert.equal(compactText(snap, 'highest'), '7g 16%');
+  assert.equal(headlinePercent(snap, 'both'), 16);
+  assert.equal(snapshotLevel(snap), 'ok');
+  assert.deepEqual(new ThresholdNotifier().check(snap, { warn: 75, crit: 90 }), []);
+  const html = renderSnapshotHtml(snap);
+  assert.match(html, /Diğer — belgelenmemiş/);
+  assert.match(html, /<code>iguana_necktie<\/code>/);
 });

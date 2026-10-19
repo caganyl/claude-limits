@@ -17,6 +17,11 @@ export interface LimitWindow {
   resetsAt?: string;
   /** True when Anthropic marks this window as the one currently binding the account. */
   active?: boolean;
+  /**
+   * True for buckets Anthropic hasn't documented (internal codenames such as "iguana_necktie").
+   * Shown separately and never used for the status bar, icon colour or notifications.
+   */
+  undocumented?: boolean;
 }
 
 export interface ExtraUsage {
