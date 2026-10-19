@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ClaudeLimits.Core;
 using Level = ClaudeLimits.Core.Level;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -111,7 +113,7 @@ namespace ClaudeLimits.VisualStudio
                             break;
                         default:
                             _border.Background = Brushes.Transparent;
-                            _text.ClearValue(TextBlock.ForegroundProperty); // inherit the status bar's themed foreground
+                            ApplyDefaultForeground();
                             break;
                     }
                 }
@@ -295,7 +297,43 @@ namespace ClaudeLimits.VisualStudio
             Detach();
             // In a DockPanel the first Dock=Right child sits at the far right edge.
             panel.Children.Insert(0, _border);
+            ApplyDefaultForeground();
             return true;
+        }
+
+        /// <summary>
+        /// The status bar panel itself carries no text colour (each VS item sets its own), so inheriting gave a
+        /// dark-on-dark label. Follow a neighbouring status bar text (e.g. the branch name) so the label tracks every
+        /// theme and state colour (blue, debugging orange…); fall back to the theme's status bar text brush.
+        /// Runs on the element's owner thread.
+        /// </summary>
+        private void ApplyDefaultForeground()
+        {
+            if (_text == null) return;
+            try
+            {
+                var host = _border?.Parent as DependencyObject;
+                var reference = host == null
+                    ? null
+                    : FindFirst(host, d => d is TextBlock tb && !ReferenceEquals(tb, _text) && !string.IsNullOrWhiteSpace(tb.Text)) as TextBlock;
+                if (reference != null)
+                {
+                    _text.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(TextBlock.Foreground)) { Source = reference });
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                /* fall through to the theme brush */
+            }
+            try
+            {
+                _text.SetResourceReference(TextBlock.ForegroundProperty, EnvironmentColors.StatusBarDefaultTextBrushKey);
+            }
+            catch (Exception)
+            {
+                _text.Foreground = Theme.White;
+            }
         }
 
         /// <summary>Creates the element on the current (owner) thread, recreating it when it belongs to another thread.</summary>
