@@ -68,6 +68,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+        working-directory: .
+      - run: npm ci
       - run: npm test
       - run: npm run ${{ matrix.script }} -- --publish never
       - uses: actions/upload-artifact@v4

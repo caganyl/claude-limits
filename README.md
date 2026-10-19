@@ -42,6 +42,16 @@ Varsayılan eşikler: **%75** turuncu, **%90** kırmızı; eşik aşılınca bil
 - Tüm istemciler sonuçları `~/.claude-limits/cache.json` dosyasında paylaşır; birden fazla VS Code penceresi, tray ve Visual Studio açıkken uç nokta tek bir yerden çağrılmış gibi davranır. Bu dosyada gizli anahtar bulunmaz ([biçim](docs/cache-format.md)).
 - Anahtarlar: VS Code → SecretStorage, Visual Studio → Windows DPAPI, tray → Windows DPAPI / macOS Anahtar Zinciri (Electron safeStorage), tarayıcı → eklentinin yerel deposu.
 
+## Şirket ağı / proxy
+
+Araçlar `claude` gibi davranır: `HTTPS_PROXY` / `HTTP_PROXY` / `NO_PROXY` ortam değişkenlerini okur, şirket sertifikalarını
+`NODE_EXTRA_CA_CERTS` dosyasından ve Windows/macOS sertifika deposundan alır. Varsayılan **`auto`** modunda önce proxy denenir;
+proxy’ye ulaşılamazsa (ör. ofis dışında) **otomatik olarak doğrudan bağlanılır** ve çalışan yol 10 dakika hatırlanır — yani
+`claude` / `claude-direct` ayrımına gerek kalmaz. İsterseniz ayarlardan `direct` veya sabit bir `http://sunucu:port` seçebilirsiniz
+(VS Code: `claudeLimits.network.proxy`, Visual Studio: *Bağlantı (proxy)*, tray: Ayarlar → *Bağlantı*). Ortam değişkeni yoksa
+Visual Studio eklentisi Windows proxy ayarını, VS Code eklentisi `http.proxy` ayarını kullanır. Tarayıcı eklentisi tarayıcının
+kendi proxy ayarını kullanır.
+
 ## Kurulum
 
 Hazır paketleri **GitHub Actions** üretir (aşağıya bakın). Kurulum adımları:
