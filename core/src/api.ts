@@ -25,14 +25,45 @@ export class LimitsError extends Error {
 
 type FetchFn = typeof fetch;
 
+let defaultFetch: FetchFn | undefined;
+/** Lets a host swap the transport (proxy-aware Node fetch, Electron net.fetch…) for every call. */
+export function setDefaultFetch(fn: FetchFn | undefined): void {
+  defaultFetch = fn;
+}
+const pickFetch = (fn?: FetchFn): FetchFn => fn ?? defaultFetch ?? fetch;
+
+const CERT_CODES = /CERT|SELF_SIGNED|UNABLE_TO_(GET|VERIFY)|ERR_CERT|ERR_SSL/i;
+const PROXY_CODES = /ERR_PROXY|ERR_TUNNEL|Proxy response|407/i;
+const DNS_CODES = /ENOTFOUND|EAI_AGAIN|ERR_NAME_NOT_RESOLVED/i;
+const CONNECT_CODES = /ECONNREFUSED|ECONNRESET|ETIMEDOUT|EHOSTUNREACH|ENETUNREACH|UND_ERR_CONNECT_TIMEOUT|UND_ERR_SOCKET|ERR_CONNECTION|ERR_TIMED_OUT|ERR_INTERNET_DISCONNECTED|ERR_ADDRESS_UNREACHABLE/i;
+
+/** Turns "fetch failed" into something actionable by walking the error's cause chain. */
+export function describeNetworkError(e: unknown): string {
+  const parts: string[] = [];
+  let cur: unknown = e;
+  for (let i = 0; cur && i < 5; i++) {
+    const err = cur as { name?: string; message?: string; code?: string; cause?: unknown };
+    if (err.name === 'AbortError') return 'Zaman aşımı (15 sn içinde yanıt yok) — ağ veya proxy ayarını kontrol edin';
+    if (err.code) parts.push(String(err.code));
+    if (err.message && err.message !== 'fetch failed') parts.push(err.message);
+    cur = err.cause;
+  }
+  const detail = [...new Set(parts)].join(' — ') || String((e as Error)?.message ?? e);
+  let hint = '';
+  if (CERT_CODES.test(detail)) hint = 'Şirket SSL sertifikası tanınmıyor';
+  else if (DNS_CODES.test(detail)) hint = 'Sunucu adı çözülemedi — ağ/proxy ayarını kontrol edin';
+  else if (PROXY_CODES.test(detail)) hint = 'Proxy bağlantıyı reddetti';
+  else if (CONNECT_CODES.test(detail)) hint = 'Bağlantı kurulamadı — proxy/güvenlik duvarı engelliyor olabilir';
+  return hint ? `${hint} (${detail})` : detail;
+}
+
 async function doFetch(fetchFn: FetchFn, url: string, init: RequestInit, timeoutMs = 15000): Promise<Response> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     return await fetchFn(url, { ...init, signal: ctrl.signal });
   } catch (e) {
-    const msg = (e as Error)?.name === 'AbortError' ? 'Zaman aşımı' : (e as Error)?.message || String(e);
-    throw new LimitsError('network', `Ağ hatası: ${msg}`);
+    throw new LimitsError('network', `Ağ hatası: ${describeNetworkError(e)}`);
   } finally {
     clearTimeout(timer);
   }
@@ -66,7 +97,7 @@ export async function fetchSubscriptionUsage(
   accessToken: string,
   opts: { plan?: string; fetchFn?: FetchFn; now?: Date } = {},
 ): Promise<SubscriptionUsage> {
-  const fetchFn = opts.fetchFn ?? fetch;
+  const fetchFn = pickFetch(opts.fetchFn);
   const res = await doFetch(fetchFn, `${apiBase()}/api/oauth/usage`, {
     method: 'GET',
     headers: {
@@ -95,7 +126,7 @@ export async function probeRateLimits(
   model: string,
   opts: { fetchFn?: FetchFn; now?: Date; browser?: boolean } = {},
 ): Promise<ApiRateLimits> {
-  const fetchFn = opts.fetchFn ?? fetch;
+  const fetchFn = pickFetch(opts.fetchFn);
   const headers: Record<string, string> = {
     'x-api-key': apiKey,
     'anthropic-version': '2023-06-01',
@@ -128,7 +159,7 @@ export async function fetchApiCost(
   adminKey: string,
   opts: { budgetUsd?: number; fetchFn?: FetchFn; now?: Date; browser?: boolean } = {},
 ): Promise<ApiCost> {
-  const fetchFn = opts.fetchFn ?? fetch;
+  const fetchFn = pickFetch(opts.fetchFn);
   const now = opts.now ?? new Date();
   const today = startOfUtcDay(now);
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
@@ -202,7 +233,7 @@ export async function fetchClaudeWebUsage(
   orgId: string,
   opts: { fetchFn?: FetchFn; now?: Date } = {},
 ): Promise<SubscriptionUsage> {
-  const fetchFn = opts.fetchFn ?? fetch;
+  const fetchFn = pickFetch(opts.fetchFn);
   const res = await doFetch(fetchFn, `https://claude.ai/api/organizations/${encodeURIComponent(orgId)}/usage`, {
     method: 'GET',
     credentials: 'include',
@@ -220,7 +251,7 @@ export interface ClaudeOrg {
 }
 
 export async function fetchClaudeWebOrgs(opts: { fetchFn?: FetchFn } = {}): Promise<ClaudeOrg[]> {
-  const fetchFn = opts.fetchFn ?? fetch;
+  const fetchFn = pickFetch(opts.fetchFn);
   const res = await doFetch(fetchFn, 'https://claude.ai/api/organizations', {
     method: 'GET',
     credentials: 'include',
