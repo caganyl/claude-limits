@@ -29,6 +29,9 @@ namespace ClaudeLimits.Core
         public double RateLimitIntervalSec { get; set; } = 900;
         public double CostIntervalSec { get; set; } = 600;
 
+        /// <summary>"auto" | "direct" | proxy URL — see AnthropicClient.ProxySetting.</summary>
+        public string Proxy { get; set; } = "auto";
+
         public const string DefaultProbeModel = "claude-haiku-5-5";
         public const double DefaultSubscriptionIntervalSec = 180;
     }
@@ -53,18 +56,23 @@ namespace ClaudeLimits.Core
 
         public Task<SubscriptionUsage> FetchSubscriptionAsync(ServiceConfig cfg, CancellationToken ct)
         {
+            _client.ProxySetting = cfg.Proxy;
             var creds = CredentialReader.Read(new CredentialOptions { ManualToken = cfg.ManualOAuthToken });
             return _client.FetchSubscriptionUsageAsync(creds.AccessToken, creds.Plan, null, ct);
         }
 
         public Task<ApiRateLimits> FetchRateLimitsAsync(ServiceConfig cfg, CancellationToken ct)
         {
+            _client.ProxySetting = cfg.Proxy;
             var model = string.IsNullOrEmpty(cfg.ProbeModel) ? ServiceConfig.DefaultProbeModel : cfg.ProbeModel;
             return _client.ProbeRateLimitsAsync(cfg.ApiKey!, model, null, ct);
         }
 
-        public Task<ApiCost> FetchCostAsync(ServiceConfig cfg, CancellationToken ct) =>
-            _client.FetchApiCostAsync(cfg.AdminKey!, cfg.MonthlyBudgetUsd, null, ct);
+        public Task<ApiCost> FetchCostAsync(ServiceConfig cfg, CancellationToken ct)
+        {
+            _client.ProxySetting = cfg.Proxy;
+            return _client.FetchApiCostAsync(cfg.AdminKey!, cfg.MonthlyBudgetUsd, null, ct);
+        }
 
         public void Dispose() => _client.Dispose();
     }

@@ -78,6 +78,12 @@ namespace ClaudeLimits.VisualStudio
         public string ProbeModel { get; set; } = ServiceConfig.DefaultProbeModel;
 
         [Category(CatApi)]
+        [DisplayName("Bağlantı (proxy)")]
+        [Description("auto: HTTPS_PROXY/HTTP_PROXY tanımlıysa önce proxy, ulaşılamazsa doğrudan bağlanır (ofis içi/dışı otomatik); tanımlı değilse Windows proxy ayarı kullanılır. direct: hep doğrudan. Ya da http://sunucu:port ile sabit proxy.")]
+        [DefaultValue("auto")]
+        public string Proxy { get; set; } = "auto";
+
+        [Category(CatApi)]
         [DisplayName("Aylık bütçe (USD)")]
         [Description("Admin API harcamasının yüzde kaçının kullanıldığını göstermek için aylık bütçe. 0 = bütçe yok.")]
         [DefaultValue(0d)]
@@ -187,6 +193,7 @@ namespace ClaudeLimits.VisualStudio
                 SubscriptionIntervalSec = SubscriptionIntervalSec,
                 RateLimitIntervalSec = RateLimitIntervalSec,
                 CostIntervalSec = CostIntervalSec,
+                Proxy = string.IsNullOrWhiteSpace(Proxy) ? "auto" : Proxy.Trim(),
             };
         }
 
