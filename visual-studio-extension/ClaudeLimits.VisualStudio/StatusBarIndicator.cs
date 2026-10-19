@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -302,38 +301,68 @@ namespace ClaudeLimits.VisualStudio
         }
 
         /// <summary>
-        /// The status bar panel itself carries no text colour (each VS item sets its own), so inheriting gave a
-        /// dark-on-dark label. Follow a neighbouring status bar text (e.g. the branch name) so the label tracks every
-        /// theme and state colour (blue, debugging orange…); fall back to the theme's status bar text brush.
+        /// Picks a readable text colour for the label. The status bar panel carries no text colour of its own and
+        /// neighbouring items don't reliably expose the colour they render with, so we look at what is actually
+        /// behind the label: the first ancestor with an opaque solid background decides light vs dark text.
+        /// Re-run on every update because the status bar changes colour (debugging, solution loaded…).
         /// Runs on the element's owner thread.
         /// </summary>
         private void ApplyDefaultForeground()
         {
             if (_text == null) return;
+            var bg = EffectiveBackground(_border) ?? ThemeStatusBarBackground();
+            _text.Foreground = bg.HasValue && Luminance(bg.Value) > 0.55 ? DarkText : LightText;
+        }
+
+        private static readonly Brush LightText = FrozenBrush(Color.FromRgb(0xF1, 0xF1, 0xF1));
+        private static readonly Brush DarkText = FrozenBrush(Color.FromRgb(0x1E, 0x1E, 0x1E));
+
+        private static Brush FrozenBrush(Color c)
+        {
+            var b = new SolidColorBrush(c);
+            b.Freeze();
+            return b;
+        }
+
+        /// <summary>Relative luminance (0 = black, 1 = white), sRGB.</summary>
+        private static double Luminance(Color c)
+        {
+            double Lin(byte v)
+            {
+                var x = v / 255.0;
+                return x <= 0.03928 ? x / 12.92 : Math.Pow((x + 0.055) / 1.055, 2.4);
+            }
+            return 0.2126 * Lin(c.R) + 0.7152 * Lin(c.G) + 0.0722 * Lin(c.B);
+        }
+
+        /// <summary>First opaque solid background found walking up from the element.</summary>
+        private static Color? EffectiveBackground(DependencyObject? start)
+        {
+            var cur = start == null ? null : VisualTreeHelper.GetParent(start);
+            for (var depth = 0; cur != null && depth < 40; depth++)
+            {
+                Brush? brush = null;
+                if (cur is Panel p) brush = p.Background;
+                else if (cur is Border b) brush = b.Background;
+                else if (cur is Control c) brush = c.Background;
+                if (brush is SolidColorBrush scb && scb.Color.A >= 200 && scb.Opacity > 0.8) return scb.Color;
+                cur = VisualTreeHelper.GetParent(cur);
+            }
+            return null;
+        }
+
+        /// <summary>Fallback: the current theme's status bar background, when it can be resolved here.</summary>
+        private Color? ThemeStatusBarBackground()
+        {
             try
             {
-                var host = _border?.Parent as DependencyObject;
-                var reference = host == null
-                    ? null
-                    : FindFirst(host, d => d is TextBlock tb && !ReferenceEquals(tb, _text) && !string.IsNullOrWhiteSpace(tb.Text)) as TextBlock;
-                if (reference != null)
-                {
-                    _text.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(TextBlock.Foreground)) { Source = reference });
-                    return;
-                }
+                if (_border?.TryFindResource(EnvironmentColors.StatusBarDefaultBrushKey) is SolidColorBrush b) return b.Color;
             }
             catch (Exception)
             {
-                /* fall through to the theme brush */
+                /* resource lookup across threads may fail */
             }
-            try
-            {
-                _text.SetResourceReference(TextBlock.ForegroundProperty, EnvironmentColors.StatusBarDefaultTextBrushKey);
-            }
-            catch (Exception)
-            {
-                _text.Foreground = Theme.White;
-            }
+            return null;
         }
 
         /// <summary>Creates the element on the current (owner) thread, recreating it when it belongs to another thread.</summary>
