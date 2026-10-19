@@ -204,7 +204,7 @@ function buildTooltip(s: Snapshot): vscode.MarkdownString {
   md.appendMarkdown('**Claude limitleri**\n\n');
   if (s.subscription?.windows.length) {
     md.appendMarkdown('| Limit | Kullanım | Sıfırlanma |\n|:--|--:|:--|\n');
-    for (const w of s.subscription.windows) {
+    for (const w of s.subscription.windows.filter((x) => !x.undocumented)) {
       md.appendMarkdown(`| ${w.label}${w.active ? ' ★' : ''} | ${formatPercent(w.percent)} | ${formatResetIn(w.resetsAt) || '–'} |\n`);
     }
     md.appendMarkdown('\n');
@@ -250,9 +250,9 @@ function showPanel(context: vscode.ExtensionContext, html: () => string, service
   panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'icon.png');
   const nonce = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   panel.webview.html = `<!doctype html><html lang="tr"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<style nonce="${nonce}">
+<style>
 :root{--cl-font:var(--vscode-font-family);--cl-fg:var(--vscode-foreground);--cl-muted:var(--vscode-descriptionForeground);
 --cl-card:var(--vscode-editorWidget-background,var(--vscode-sideBar-background));--cl-border:var(--vscode-widget-border,var(--vscode-panel-border));
 --cl-track:var(--vscode-input-background);--cl-ok:var(--vscode-charts-green,#3fb950);--cl-warn:var(--vscode-charts-orange,#d29922);

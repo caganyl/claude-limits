@@ -158,6 +158,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   await vscode.commands.executeCommand('claudeLimits.showDetails');
   assert.match(webviewHtml, /Content-Security-Policy/);
+  // Bar widths are inline style attributes: the CSP must allow them (no nonce on style-src).
+  assert.match(webviewHtml, /style-src 'unsafe-inline'/);
+  assert.match(webviewHtml, /class="cl-fill cl-warn" style="width:81\.0%"/);
   assert.match(webviewHtml, /Abonelik limitleri/);
   assert.match(webviewHtml, /bağlayıcı/);
   assert.match(webviewHtml, /data-action="set-api-key"/);
@@ -178,6 +181,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   for (const d of context.subscriptions) d.dispose?.();
   ext.deactivate();
+  if (process.env.DUMP_WEBVIEW) fs.writeFileSync(process.env.DUMP_WEBVIEW, webviewHtml.replace('acquireVsCodeApi()', '({postMessage(){}})').replace('<body>', '<body style="background:#1f1f1f;--vscode-foreground:#ccc;--vscode-descriptionForeground:#9d9d9d;--vscode-editorWidget-background:#252526;--vscode-widget-border:#3c3c3c;--vscode-input-background:#3c3c3c;--vscode-button-background:#0e639c;--vscode-button-foreground:#fff">'));
   console.log('SMOKE OK —', calls.length, 'HTTP calls; status:', item.text);
   process.exit(0);
 })().catch((e) => {
