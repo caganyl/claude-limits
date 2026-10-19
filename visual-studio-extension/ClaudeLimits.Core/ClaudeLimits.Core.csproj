@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ClaudeLimits.Core</RootNamespace>
+    <AssemblyName>ClaudeLimits.Core</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>caganyl</Authors>
+    <Product>Claude Limits</Product>
+    <IsPackable>false</IsPackable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ClaudeLimits.Core.Tests" />
+  </ItemGroup>
+
+</Project>

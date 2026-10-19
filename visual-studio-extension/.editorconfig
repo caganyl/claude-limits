@@ -1,0 +1,46 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+
+[*.{csproj,vsct,vsixmanifest,xaml,props,targets}]
+indent_size = 2
+
+[*.cs]
+# Threading analyzers (Microsoft.VisualStudio.Threading.Analyzers) and VSSDK analyzers: warnings, never errors.
+dotnet_diagnostic.VSTHRD001.severity = warning
+dotnet_diagnostic.VSTHRD002.severity = warning
+dotnet_diagnostic.VSTHRD003.severity = warning
+dotnet_diagnostic.VSTHRD004.severity = warning
+dotnet_diagnostic.VSTHRD010.severity = warning
+dotnet_diagnostic.VSTHRD011.severity = warning
+dotnet_diagnostic.VSTHRD012.severity = warning
+dotnet_diagnostic.VSTHRD100.severity = warning
+dotnet_diagnostic.VSTHRD101.severity = warning
+dotnet_diagnostic.VSTHRD102.severity = warning
+dotnet_diagnostic.VSTHRD103.severity = warning
+dotnet_diagnostic.VSTHRD104.severity = warning
+dotnet_diagnostic.VSTHRD105.severity = warning
+dotnet_diagnostic.VSTHRD106.severity = warning
+dotnet_diagnostic.VSTHRD107.severity = warning
+dotnet_diagnostic.VSTHRD108.severity = warning
+dotnet_diagnostic.VSTHRD109.severity = warning
+dotnet_diagnostic.VSTHRD110.severity = warning
+dotnet_diagnostic.VSTHRD111.severity = suggestion
+dotnet_diagnostic.VSTHRD112.severity = warning
+dotnet_diagnostic.VSTHRD113.severity = warning
+dotnet_diagnostic.VSTHRD114.severity = warning
+dotnet_diagnostic.VSTHRD200.severity = suggestion
+dotnet_diagnostic.VSSDK001.severity = warning
+dotnet_diagnostic.VSSDK002.severity = warning
+dotnet_diagnostic.VSSDK003.severity = warning
+dotnet_diagnostic.VSSDK004.severity = warning
+dotnet_diagnostic.VSSDK005.severity = warning
+dotnet_diagnostic.VSSDK006.severity = warning
+dotnet_diagnostic.VSSDK007.severity = warning
+dotnet_diagnostic.VSSDK008.severity = warning
+dotnet_diagnostic.VSSDK009.severity = warning
+dotnet_diagnostic.VSSDK010.severity = warning
