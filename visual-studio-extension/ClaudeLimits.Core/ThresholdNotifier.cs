@@ -54,6 +54,7 @@ namespace ClaudeLimits.Core
             {
                 foreach (var w in s.Subscription.Windows)
                 {
+                    if (w.IsUndocumented) continue;
                     var reset = Formatting.FormatResetIn(w.ResetsAt, now);
                     var label = w.Label;
                     Consider("sub:" + w.Id + ":" + (w.ResetsAt ?? ""), w.Percent, pct =>

@@ -50,6 +50,16 @@ namespace ClaudeLimits.Core
 
         [JsonIgnore]
         public bool IsActive => Active == true;
+
+        /// <summary>
+        /// True for buckets Anthropic hasn't documented (internal codenames such as "iguana_necktie").
+        /// Shown separately; never used for the status bar, colours or notifications.
+        /// </summary>
+        [JsonProperty("undocumented", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? Undocumented { get; set; }
+
+        [JsonIgnore]
+        public bool IsUndocumented => Undocumented == true;
     }
 
     public sealed class ExtraUsage

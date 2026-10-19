@@ -65,7 +65,7 @@ namespace ClaudeLimits.VisualStudio
                 if (plan.Length > 0) chip.Add(plan);
                 chip.Add(s.Subscription.Source == "claude-web" ? "claude.ai" : "Claude Code");
                 lines.Add("Abonelik (" + string.Join(" · ", chip) + ")");
-                foreach (var w in s.Subscription.Windows)
+                foreach (var w in s.Subscription.Windows.Where(x => !x.IsUndocumented))
                 {
                     var reset = ResetText(w.ResetsAt ?? "", now);
                     lines.Add("  " + w.Label + ": " + Formatting.FormatPercent(w.Percent)

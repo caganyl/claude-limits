@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -81,11 +82,20 @@ namespace ClaudeLimits.VisualStudio
 
             if (sub != null && sub.Windows.Count > 0)
             {
-                foreach (var w in sub.Windows)
+                foreach (var w in sub.Windows.Where(x => !x.IsUndocumented))
                 {
                     var level = Formatting.LevelOf(w.Percent, t);
                     var reset = SnapshotText.ResetText(w.ResetsAt ?? "", now);
                     SubscriptionPanel.Children.Add(Row(w.Label, Formatting.FormatPercent(w.Percent), level, w.Percent, reset, w.IsActive));
+                }
+                foreach (var w in sub.Windows.Where(x => x.IsUndocumented))
+                {
+                    // Undocumented codename bucket (e.g. iguana_necktie): neutral colour, raw key as label.
+                    var reset = SnapshotText.ResetText(w.ResetsAt ?? "", now);
+                    var row = Row("Belgelenmemiş: " + w.Id.Split(':')[0], Formatting.FormatPercent(w.Percent), Level.Unknown, w.Percent, reset, false);
+                    row.Opacity = 0.7;
+                    row.ToolTip = "Anthropic’in kullanım yanıtında adı açıklanmamış (iç kod adlı) bir limit. Durum çubuğu ve bildirimlerde kullanılmaz.";
+                    SubscriptionPanel.Children.Add(row);
                 }
 
                 var extra = sub.Extra;

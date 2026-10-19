@@ -138,8 +138,9 @@ namespace ClaudeLimits.Core
         }
 
         /// <summary>Windows to show in a compact status line for the given mode.</summary>
-        public static List<LimitWindow> PickCompactWindows(IList<LimitWindow> windows, DisplayMode mode)
+        public static List<LimitWindow> PickCompactWindows(IList<LimitWindow> all, DisplayMode mode)
         {
+            var windows = all.Where(w => !w.IsUndocumented).ToList();
             var session = windows.FirstOrDefault(w => w.Id == "session");
             var weekly = windows.FirstOrDefault(w => w.Id == "weekly_all");
             var scopedMax = windows
@@ -194,7 +195,7 @@ namespace ClaudeLimits.Core
         {
             var levels = new List<Level>();
             if (snapshot.Subscription != null)
-                foreach (var w in snapshot.Subscription.Windows) levels.Add(LevelOf(w.Percent, t));
+                foreach (var w in snapshot.Subscription.Windows) if (!w.IsUndocumented) levels.Add(LevelOf(w.Percent, t));
             if (snapshot.RateLimits != null)
             {
                 foreach (var b in snapshot.RateLimits.Buckets) levels.Add(LevelOf(b.PercentUsed, t));

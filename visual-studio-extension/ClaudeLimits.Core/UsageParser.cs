@@ -129,6 +129,7 @@ namespace ClaudeLimits.Core
                                 Label = PrettifyKey(kind) + suffix,
                                 ShortLabel = kind,
                                 Percent = percent.Value,
+                                Undocumented = true,
                             };
                             break;
                         }
@@ -158,7 +159,7 @@ namespace ClaudeLimits.Core
                 }
                 else
                 {
-                    w = new LimitWindow { Id = prop.Name, Label = PrettifyKey(prop.Name), ShortLabel = prop.Name, Percent = Js.ClampPct(percent.Value) };
+                    w = new LimitWindow { Id = prop.Name, Label = PrettifyKey(prop.Name), ShortLabel = prop.Name, Percent = Js.ClampPct(percent.Value), Undocumented = true };
                     ord = 99;
                 }
                 var resetsAt = Js.Str(value["resets_at"]);
