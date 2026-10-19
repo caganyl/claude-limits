@@ -6,6 +6,8 @@ import { compactText, formatPercent, formatResetIn, headlinePercent, snapshotLev
 import type { Snapshot } from '../../core/src/model';
 import { ThresholdNotifier } from '../../core/src/notify';
 import { LimitsService } from '../../core/src/service';
+import { setDefaultFetch } from '../../core/src/api';
+import { createNodeFetch } from '../../core/src/net';
 import { gaugeTemplatePng, percentIconPng } from './icon';
 import { SettingsStore } from './settings';
 import type { SettingsUpdate, SnapshotMessage } from './shared';
@@ -17,6 +19,7 @@ const SCREENSHOT = process.env.CLAUDE_LIMITS_SCREENSHOT; // test hook: save a PN
 let tray: Tray | undefined;
 let popup: BrowserWindow | undefined;
 let service: LimitsService;
+let transport: ReturnType<typeof createNodeFetch> | undefined;
 let lastHiddenAt = 0;
 const settings = new SettingsStore();
 const notifier = new ThresholdNotifier();
@@ -50,6 +53,11 @@ function start(): void {
 
   createPopup();
   registerIpc();
+
+  // Corporate networks: env proxy (or the one in settings) + OS/NODE_EXTRA_CA_CERTS certificates,
+  // with automatic fallback to a direct connection outside the office.
+  transport = createNodeFetch({ proxy: () => settings.proxy });
+  setDefaultFetch(transport as typeof fetch);
 
   service = new LimitsService(() => settings.serviceConfig(), onSnapshot);
   service.start(30);
@@ -112,6 +120,8 @@ function tooltip(s: Snapshot): string {
   if (s.rateLimits?.buckets.length) {
     lines.push(`API ${formatPercent(Math.max(...s.rateLimits.buckets.map((b) => b.percentUsed)))}`);
   }
+  const route = transport?.lastRoute();
+  if (route) lines.push(route === 'direct' ? 'Bağlantı: doğrudan' : 'Bağlantı: proxy');
   return lines.join('\n');
 }
 

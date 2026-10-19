@@ -19,6 +19,7 @@ interface StoredSettings {
   notifications: boolean;
   launchAtLogin: boolean;
   menuBarText: boolean;
+  proxy: string;
   secrets: { apiKey?: string; adminKey?: string; oauthToken?: string };
 }
 
@@ -35,6 +36,7 @@ const DEFAULTS: StoredSettings = {
   notifications: true,
   launchAtLogin: true,
   menuBarText: true,
+  proxy: 'auto',
   secrets: {},
 };
 
@@ -97,6 +99,9 @@ export class SettingsStore {
   get menuBarText(): boolean {
     return this.data.menuBarText;
   }
+  get proxy(): string {
+    return this.data.proxy || 'auto';
+  }
   get thresholds() {
     return { warn: Math.min(this.data.warn, this.data.crit), crit: Math.max(this.data.warn, this.data.crit) };
   }
@@ -131,6 +136,7 @@ export class SettingsStore {
       notifications: d.notifications,
       launchAtLogin: d.launchAtLogin,
       menuBarText: d.menuBarText,
+      proxy: d.proxy || 'auto',
       hasApiKey: !!this.decrypt(d.secrets.apiKey),
       hasAdminKey: !!this.decrypt(d.secrets.adminKey),
       hasOAuthToken: !!this.decrypt(d.secrets.oauthToken),
@@ -154,6 +160,7 @@ export class SettingsStore {
     if (typeof u.notifications === 'boolean') d.notifications = u.notifications;
     if (typeof u.launchAtLogin === 'boolean') d.launchAtLogin = u.launchAtLogin;
     if (typeof u.menuBarText === 'boolean') d.menuBarText = u.menuBarText;
+    if (typeof u.proxy === 'string') d.proxy = u.proxy.trim() || 'auto';
     for (const k of ['apiKey', 'adminKey', 'oauthToken'] as const) {
       const v = u[k];
       if (v === undefined) continue;

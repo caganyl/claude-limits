@@ -16,6 +16,8 @@ export interface PublicSettings {
   launchAtLogin: boolean;
   /** macOS: show the percentages as text next to the menu bar icon. */
   menuBarText: boolean;
+  /** "auto" | "direct" | proxy URL. */
+  proxy: string;
   hasApiKey: boolean;
   hasAdminKey: boolean;
   hasOAuthToken: boolean;

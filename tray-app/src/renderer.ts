@@ -111,7 +111,7 @@ function fillForm(s: PublicSettings): void {
   };
   for (const k of [
     'subscriptionEnabled', 'displayMode', 'warn', 'crit', 'subscriptionIntervalSec', 'rateLimitIntervalSec',
-    'costIntervalSec', 'probeModel', 'monthlyBudgetUsd', 'notifications', 'launchAtLogin', 'menuBarText',
+    'costIntervalSec', 'probeModel', 'monthlyBudgetUsd', 'notifications', 'launchAtLogin', 'menuBarText', 'proxy',
   ] as const) set(k, s[k]);
   const saved: Record<(typeof SECRET_FIELDS)[number], boolean> = {
     apiKey: s.hasApiKey,
@@ -148,6 +148,7 @@ form.addEventListener('submit', async (e) => {
     notifications: v('notifications').checked,
     launchAtLogin: v('launchAtLogin').checked,
     menuBarText: v('menuBarText').checked,
+    proxy: v('proxy').value,
   };
   for (const k of SECRET_FIELDS) {
     const raw = v(k).value.trim();

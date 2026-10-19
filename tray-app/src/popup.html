@@ -59,6 +59,10 @@
             <label>Rate limit (sn) <input type="number" name="rateLimitIntervalSec" min="120"></label>
             <label>Harcama (sn) <input type="number" name="costIntervalSec" min="120"></label>
           </div>
+          <label>Bağlantı (proxy)
+            <input type="text" name="proxy" spellcheck="false" placeholder="auto">
+          </label>
+          <p class="hint"><code>auto</code>: HTTPS_PROXY varsa önce proxy, ulaşılamazsa doğrudan (ofis içi/dışı otomatik). <code>direct</code>: hep doğrudan. Ya da <code>http://sunucu:port</code>.</p>
           <label class="check"><input type="checkbox" name="launchAtLogin"> Oturum açılışında başlat</label>
           <label class="check mac-only"><input type="checkbox" name="menuBarText"> Menü çubuğunda yüzdeleri yazıyla göster</label>
         </section>
