@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+  <title>Claude Limits</title>
+</head>
+<body>
+  <div id="app">
+    <header class="top">
+      <div class="brand"><span class="dot" id="dot"></span><span id="title">Claude Limits</span></div>
+      <div class="tools">
+        <button class="icon" id="btn-settings" title="Ayarlar" aria-label="Ayarlar">
+          <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M9.4 1.2l.3 1.6c.4.1.8.3 1.1.5l1.4-.9 1.4 1.4-.9 1.4c.2.3.4.7.5 1.1l1.6.3v2l-1.6.3c-.1.4-.3.8-.5 1.1l.9 1.4-1.4 1.4-1.4-.9c-.3.2-.7.4-1.1.5l-.3 1.6h-2l-.3-1.6c-.4-.1-.8-.3-1.1-.5l-1.4.9-1.4-1.4.9-1.4c-.2-.3-.4-.7-.5-1.1L1.2 9V7l1.6-.3c.1-.4.3-.8.5-1.1l-.9-1.4 1.4-1.4 1.4.9c.3-.2.7-.4 1.1-.5l.3-1.6h2zM8 5.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5z"/></svg>
+        </button>
+        <button class="icon" id="btn-close" title="Kapat" aria-label="Kapat">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M4 4l8 8M12 4l-8 8"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="view-main"><div id="root"></div></main>
+
+    <main id="view-settings" hidden>
+      <form id="settings" class="cl" autocomplete="off">
+        <section class="cl-sec">
+          <header class="cl-head"><h2>Abonelik</h2></header>
+          <label class="check"><input type="checkbox" name="subscriptionEnabled"> Claude Pro/Max limitlerini göster</label>
+          <p class="hint">Veri bu bilgisayardaki Claude Code girişinden okunur (terminalde <code>claude</code> → <code>/login</code>).</p>
+          <label>Gösterim
+            <select name="displayMode">
+              <option value="both">Oturum + haftalık</option>
+              <option value="session">Yalnızca 5 saatlik oturum</option>
+              <option value="weekly">Yalnızca haftalık</option>
+              <option value="highest">En yüksek olan</option>
+            </select>
+          </label>
+          <label>OAuth token (isteğe bağlı) <input type="password" name="oauthToken" placeholder="Claude Code girişi kullanılır"></label>
+        </section>
+
+        <section class="cl-sec">
+          <header class="cl-head"><h2>API</h2></header>
+          <label>API anahtarı — dakikalık rate limit <input type="password" name="apiKey" placeholder="sk-ant-api03-…"></label>
+          <label>Ölçülecek model <input type="text" name="probeModel" spellcheck="false"></label>
+          <label>Admin API anahtarı — harcama <input type="password" name="adminKey" placeholder="sk-ant-admin01-…"></label>
+          <label>Aylık bütçe (USD, 0 = yok) <input type="number" name="monthlyBudgetUsd" min="0" step="1"></label>
+          <p class="hint" id="secure-hint"></p>
+        </section>
+
+        <section class="cl-sec">
+          <header class="cl-head"><h2>Uyarılar ve yenileme</h2></header>
+          <div class="grid2">
+            <label>Uyarı % <input type="number" name="warn" min="1" max="100"></label>
+            <label>Kritik % <input type="number" name="crit" min="1" max="100"></label>
+          </div>
+          <label class="check"><input type="checkbox" name="notifications"> Eşik aşılınca bildirim göster</label>
+          <div class="grid3">
+            <label>Abonelik (sn) <input type="number" name="subscriptionIntervalSec" min="60"></label>
+            <label>Rate limit (sn) <input type="number" name="rateLimitIntervalSec" min="120"></label>
+            <label>Harcama (sn) <input type="number" name="costIntervalSec" min="120"></label>
+          </div>
+          <label class="check"><input type="checkbox" name="launchAtLogin"> Oturum açılışında başlat</label>
+          <label class="check mac-only"><input type="checkbox" name="menuBarText"> Menü çubuğunda yüzdeleri yazıyla göster</label>
+        </section>
+
+        <footer class="cl-foot">
+          <button type="button" class="link-danger" id="btn-quit">Uygulamadan çık</button>
+          <span class="cl-actions">
+            <button type="button" id="btn-cancel">Vazgeç</button>
+            <button type="submit" class="cl-primary">Kaydet</button>
+          </span>
+        </footer>
+      </form>
+    </main>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>

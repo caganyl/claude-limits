@@ -1,0 +1,118 @@
+{
+  "name": "claude-limits-tray",
+  "productName": "Claude Limits",
+  "version": "1.0.0",
+  "description": "Claude abonelik ve API limitlerini menü çubuğunda / görev çubuğunda gösterir.",
+  "author": "caganyl",
+  "license": "MIT",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc --noEmit -p . && node build.mjs",
+    "start": "npm run build && electron .",
+    "test": "npm run build && node test/icon.test.cjs",
+    "dist:win": "npm run build && electron-builder --win --x64 --arm64",
+    "dist:mac": "npm run build && electron-builder --mac --x64 --arm64",
+    "dist:linux": "npm run build && electron-builder --linux"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  },
+  "build": {
+    "appId": "com.caganyl.claudelimits",
+    "productName": "Claude Limits",
+    "copyright": "© 2026 caganyl",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "!dist/icon-samples/**",
+      "!dist/icon.js",
+      "package.json"
+    ],
+    "asar": true,
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.png",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "LSUIElement": true,
+        "NSHumanReadableCopyright": "© 2026 caganyl"
+      },
+      "artifactName": "Claude-Limits-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "Claude Limits"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "Claude-Limits-${version}-win-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "artifactName": "Claude-Limits-Setup-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Claude-Limits-${version}-portable.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Development",
+      "desktop": {
+        "entry": {
+          "StartupWMClass": "Claude Limits"
+        }
+      }
+    },
+    "publish": []
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/caganyl/claude-limits"
+  }
+}
