@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Claude Limits — Ayarlar</title>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Claude Limits</h1>
+    <p class="lead">Abonelik limitleri, bu tarayıcıdaki claude.ai oturumunuzdan okunur — ek bir giriş gerekmez.
+      API alanları isteğe bağlıdır.</p>
+    <form id="f" class="cl" autocomplete="off">
+      <section class="cl-sec">
+        <header class="cl-head"><h2>Gösterim</h2></header>
+        <label>Rozette gösterilecek yüzde
+          <select name="displayMode">
+            <option value="session">5 saatlik oturum</option>
+            <option value="weekly">Haftalık</option>
+            <option value="highest">En yüksek olan</option>
+          </select>
+        </label>
+        <div class="grid">
+          <label>Uyarı % <input type="number" name="warn" min="1" max="100"></label>
+          <label>Kritik % <input type="number" name="crit" min="1" max="100"></label>
+        </div>
+        <label class="check"><input type="checkbox" name="notifications"> Eşik aşılınca masaüstü bildirimi göster</label>
+      </section>
+
+      <section class="cl-sec">
+        <header class="cl-head"><h2>API (isteğe bağlı)</h2></header>
+        <label>API anahtarı — dakikalık rate limit <input type="password" name="apiKey" placeholder="sk-ant-api03-…"></label>
+        <label>Ölçülecek model <input type="text" name="probeModel" spellcheck="false"></label>
+        <label>Admin API anahtarı — aylık harcama <input type="password" name="adminKey" placeholder="sk-ant-admin01-…"></label>
+        <label>Aylık bütçe (USD, 0 = yok) <input type="number" name="monthlyBudgetUsd" min="0" step="1"></label>
+        <p class="hint">Anahtarlar yalnızca bu tarayıcı profilinin yerel eklenti deposunda tutulur ve yalnızca api.anthropic.com’a gönderilir.
+          Rate limit ölçümü her seferinde 1 token’lık bir istek gönderir.</p>
+      </section>
+
+      <section class="cl-sec">
+        <header class="cl-head"><h2>Yenileme aralıkları (dakika)</h2></header>
+        <div class="grid3">
+          <label>Abonelik <input type="number" name="subscriptionIntervalMin" min="1"></label>
+          <label>Rate limit <input type="number" name="rateLimitIntervalMin" min="2"></label>
+          <label>Harcama <input type="number" name="costIntervalMin" min="2"></label>
+        </div>
+      </section>
+
+      <footer class="cl-foot">
+        <span id="status" role="status"></span>
+        <span class="cl-actions"><button type="submit" class="cl-primary">Kaydet</button></span>
+      </footer>
+    </form>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>
