@@ -147,11 +147,17 @@ export function iconText(percent: number | undefined, error = false): string {
   return p >= 100 ? '!' : String(Math.max(0, p));
 }
 
-/** Windows/Linux tray icon: coloured tile with white digits. */
-export function percentIconPng(size: number, percent: number | undefined, level: Level, error = false): Buffer {
+export type IconShape = 'tile' | 'circle';
+
+/**
+ * Windows/Linux tray icon: coloured shape with white digits. "tile" (rounded square) is used for the
+ * 5-hour session, "circle" for the weekly limit, so the two icons can be told apart at a glance.
+ */
+export function percentIconPng(size: number, percent: number | undefined, level: Level, error = false, shape: IconShape = 'tile'): Buffer {
   const c = new Canvas(size, size);
   const r = size * 0.22;
-  c.fill(LEVEL_COLORS[level], roundedRect(0, 0, size, size, r));
+  const h = size / 2;
+  c.fill(LEVEL_COLORS[level], shape === 'circle' ? (x, y) => (x - h) ** 2 + (y - h) ** 2 <= h * h : roundedRect(0, 0, size, size, r));
   c.fill([255, 255, 255, 1], textCoverage(iconText(percent, error), size), 1);
   return c.png();
 }

@@ -26,5 +26,6 @@ for (const size of [16, 32]) {
     fs.writeFileSync(path.join(out, `pct-${size}-${p ?? 'na'}.png`), png);
   }
   fs.writeFileSync(path.join(out, `gauge-${size}.png`), gaugeTemplatePng(size));
+  fs.writeFileSync(path.join(out, `weekly-${size}-16.png`), percentIconPng(size, 16, 'ok', false, 'circle'));
 }
 console.log('ICON OK →', out);

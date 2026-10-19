@@ -2,13 +2,13 @@
 import { BrowserWindow, Menu, Notification, Tray, app, ipcMain, nativeImage, nativeTheme, screen, shell } from 'electron';
 import * as path from 'node:path';
 import { promises as fs } from 'node:fs';
-import { compactText, formatPercent, formatResetIn, headlinePercent, snapshotLevel } from '../../core/src/format';
+import { compactText, formatPercent, formatResetIn, headlinePercent, levelOf, pickCompactWindows, snapshotLevel } from '../../core/src/format';
 import type { Snapshot } from '../../core/src/model';
 import { ThresholdNotifier } from '../../core/src/notify';
 import { LimitsService } from '../../core/src/service';
 import { setDefaultFetch } from '../../core/src/api';
 import { createNodeFetch } from '../../core/src/net';
-import { gaugeTemplatePng, percentIconPng } from './icon';
+import { IconShape, gaugeTemplatePng, percentIconPng } from './icon';
 import { SettingsStore } from './settings';
 import type { SettingsUpdate, SnapshotMessage } from './shared';
 
@@ -17,6 +17,8 @@ const POPUP_WIDTH = 360;
 const SCREENSHOT = process.env.CLAUDE_LIMITS_SCREENSHOT; // test hook: save a PNG of the popup and quit
 
 let tray: Tray | undefined;
+/** Second icon (weekly) on Windows/Linux when the display mode is "both". */
+let weeklyTray: Tray | undefined;
 let popup: BrowserWindow | undefined;
 let service: LimitsService;
 let transport: ReturnType<typeof createNodeFetch> | undefined;
@@ -75,11 +77,49 @@ function initialIcon(): Electron.NativeImage {
   return percentImage(undefined, 'unknown', false);
 }
 
-function percentImage(p: number | undefined, level: ReturnType<typeof snapshotLevel>, error: boolean): Electron.NativeImage {
-  const img = nativeImage.createFromBuffer(percentIconPng(16, p, level, error), { scaleFactor: 1 });
-  img.addRepresentation({ scaleFactor: 1.5, buffer: percentIconPng(24, p, level, error) });
-  img.addRepresentation({ scaleFactor: 2, buffer: percentIconPng(32, p, level, error) });
+function percentImage(p: number | undefined, level: ReturnType<typeof snapshotLevel>, error: boolean, shape: IconShape = 'tile'): Electron.NativeImage {
+  const img = nativeImage.createFromBuffer(percentIconPng(16, p, level, error, shape), { scaleFactor: 1 });
+  img.addRepresentation({ scaleFactor: 1.5, buffer: percentIconPng(24, p, level, error, shape) });
+  img.addRepresentation({ scaleFactor: 2, buffer: percentIconPng(32, p, level, error, shape) });
   return img;
+}
+
+function windowLine(w: { label: string; percent: number; resetsAt?: string }): string {
+  const reset = formatResetIn(w.resetsAt);
+  return `${w.label}: ${formatPercent(w.percent)}${reset ? ` (${reset})` : ''}`;
+}
+
+/** Windows/Linux: one icon per number. "both" = session tile + weekly circle; other modes = a single tile. */
+function updateTrayIcons(s: Snapshot): void {
+  if (!tray) return;
+  const t = settings.thresholds;
+  const mode = settings.displayMode;
+  const picked = s.subscription ? pickCompactWindows(s.subscription.windows, mode) : [];
+  const hasError = !!(s.subscriptionError || s.rateLimitsError || s.costError);
+
+  if (mode === 'both' && picked.length === 2) {
+    const [session, weekly] = picked;
+    tray.setImage(percentImage(session.percent, levelOf(session.percent, t), false, 'tile'));
+    if (!weeklyTray) {
+      weeklyTray = new Tray(percentImage(weekly.percent, levelOf(weekly.percent, t), false, 'circle'));
+      weeklyTray.on('click', () => togglePopup());
+      weeklyTray.on('right-click', () => weeklyTray?.popUpContextMenu(contextMenu()));
+    } else {
+      weeklyTray.setImage(percentImage(weekly.percent, levelOf(weekly.percent, t), false, 'circle'));
+    }
+    weeklyTray.setToolTip(`Claude Limits — ${windowLine(weekly)}`.slice(0, 127));
+    return;
+  }
+  if (weeklyTray) {
+    weeklyTray.destroy();
+    weeklyTray = undefined;
+  }
+  const shown = picked[0];
+  tray.setImage(
+    shown
+      ? percentImage(shown.percent, levelOf(shown.percent, t), false, 'tile')
+      : percentImage(headlinePercent(s, mode), snapshotLevel(s, t), hasError && !s.subscription && !s.rateLimits),
+  );
 }
 
 function onSnapshot(s: Snapshot, notify = true): void {
@@ -93,7 +133,7 @@ function onSnapshot(s: Snapshot, notify = true): void {
   if (isMac) {
     tray.setTitle(settings.menuBarText ? (text ? ` ${text}` : '') : '', { fontType: 'monospacedDigit' });
   } else {
-    tray.setImage(percentImage(headlinePercent(s, mode), level, hasError && !s.subscription && !s.rateLimits));
+    updateTrayIcons(s);
   }
   tray.setToolTip(tooltip(s).slice(0, 127));
 
@@ -112,7 +152,7 @@ function onSnapshot(s: Snapshot, notify = true): void {
 
 function tooltip(s: Snapshot): string {
   const lines = ['Claude Limits'];
-  for (const w of s.subscription?.windows.slice(0, 3) ?? []) {
+  for (const w of (s.subscription?.windows ?? []).filter((x) => !x.undocumented).slice(0, 3)) {
     const reset = formatResetIn(w.resetsAt);
     lines.push(`${w.shortLabel} ${formatPercent(w.percent)}${reset ? ` (${reset})` : ''}`);
   }
