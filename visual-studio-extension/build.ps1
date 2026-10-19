@@ -16,7 +16,10 @@
 param(
     [ValidateSet('Release', 'Debug')]
     [string] $Configuration = 'Release',
-    [switch] $SkipTests
+    [switch] $SkipTests,
+    # VSIX version. Visual Studio refuses to install a .vsix whose version is already installed, so every
+    # CI build gets its own number (1.0.<run>). Local builds keep the manifest's version unless given.
+    [string] $Version = $(if ($env:GITHUB_RUN_NUMBER) { "1.0.$($env:GITHUB_RUN_NUMBER)" } else { '' })
 )
 
 $ErrorActionPreference = 'Stop'
@@ -41,6 +44,18 @@ function Invoke-Step([string] $name, [scriptblock] $block) {
     Write-Host "==> $name" -ForegroundColor Cyan
     & $block
     if ($LASTEXITCODE -ne 0) { throw "$name başarısız (çıkış kodu $LASTEXITCODE)" }
+}
+
+if ($Version) {
+    if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw "Geçersiz sürüm: $Version (ör. 1.0.7)" }
+    $manifest = Join-Path $root 'ClaudeLimits.VisualStudio\source.extension.vsixmanifest'
+    $xml = Get-Content $manifest -Raw
+    $xml = [regex]::Replace($xml, '(<Identity\b[^>]*\bVersion=")[^"]*(")', "`${1}$Version`${2}")
+    Set-Content -Path $manifest -Value $xml -Encoding UTF8 -NoNewline
+    $info = Join-Path $root 'ClaudeLimits.VisualStudio\Properties\AssemblyInfo.cs'
+    (Get-Content $info -Raw) -replace 'AssemblyFileVersion\("[^"]*"\)', "AssemblyFileVersion(`"$Version.0`")" |
+        Set-Content -Path $info -Encoding UTF8 -NoNewline
+    Write-Host "VSIX sürümü: $Version"
 }
 
 $msbuild = Find-MSBuild
