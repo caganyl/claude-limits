@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="ClaudeLimits.VisualStudio.caganyl" Version="1.0.0" Language="en-US" Publisher="caganyl" />
+    <DisplayName>Claude Limits</DisplayName>
+    <Description xml:space="preserve">Claude Pro/Max abonelik limitlerini (5 saatlik oturum, haftalık, model bazlı haftalık) ve Anthropic API limitlerini (dakikalık rate limit, aylık harcama) durum çubuğunda ve bir araç penceresinde gösterir. Claude Code girişini yalnızca okur.</Description>
+    <MoreInfo>https://github.com/caganyl/claude-limits</MoreInfo>
+    <License>Resources\LICENSE.txt</License>
+    <Tags>Claude, Anthropic, AI, limits, usage, kullanım</Tags>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,19.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,19.0)">
+      <ProductArchitecture>arm64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+  </Assets>
+</PackageManifest>

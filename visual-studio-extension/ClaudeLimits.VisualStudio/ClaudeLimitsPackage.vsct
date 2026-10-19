@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h" />
+  <Extern href="vsshlids.h" />
+  <Include href="KnownImageIds.vsct" />
+
+  <Commands package="guidClaudeLimitsPackage">
+    <Buttons>
+      <!-- View > Other Windows > Claude Limits -->
+      <Button guid="guidClaudeLimitsCmdSet" id="cmdidShowToolWindowView" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+        <Icon guid="ImageCatalogGuid" id="StatusInformation" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Claude Limits</ButtonText>
+          <CommandName>ClaudeLimits.ShowToolWindow</CommandName>
+        </Strings>
+      </Button>
+
+      <!-- Tools > Claude Limits -->
+      <Button guid="guidClaudeLimitsCmdSet" id="cmdidShowToolWindowTools" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_TOOLS_EXT_TOOLS" />
+        <Icon guid="ImageCatalogGuid" id="StatusInformation" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Claude Limits</ButtonText>
+          <CommandName>ClaudeLimits.ShowToolWindowFromTools</CommandName>
+        </Strings>
+      </Button>
+
+      <!-- Tools > Claude Limits: Yenile -->
+      <Button guid="guidClaudeLimitsCmdSet" id="cmdidRefresh" priority="0x0101" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_TOOLS_EXT_TOOLS" />
+        <Icon guid="ImageCatalogGuid" id="Refresh" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Claude Limits: Yenile</ButtonText>
+          <CommandName>ClaudeLimits.Refresh</CommandName>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="guidClaudeLimitsPackage" value="{09EED115-62AD-4383-A1D6-49B3E2884003}" />
+
+    <GuidSymbol name="guidClaudeLimitsCmdSet" value="{13DF8A66-5FAC-4C20-A074-040D3E40EC4B}">
+      <IDSymbol name="cmdidShowToolWindowView" value="0x0100" />
+      <IDSymbol name="cmdidShowToolWindowTools" value="0x0101" />
+      <IDSymbol name="cmdidRefresh" value="0x0102" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
